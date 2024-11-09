@@ -10,10 +10,18 @@ const SignupPage = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter(); // Initialize useRouter
-  const pathname = window.location.pathname; 
-  const page = pathname?.split('/Signup/')[1]; 
-  console.log(page);
+  const router = useRouter(); 
+  const [page, setPage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const pathname = window.location.pathname; 
+    const extractedPage = pathname.split('/Signup/')[1];
+    if (extractedPage) {
+        setPage(extractedPage);
+    } else {
+        setError('Page parameter is missing.');
+    }
+}, []);
 
   // useEffect(() => {
   //   if (!page) {
@@ -33,7 +41,8 @@ const SignupPage = () => {
     }
 
     try {
-      const response = await fetch('/Signup/student/api', {
+      // const response = await fetch('/Signup/student/api', {
+      const response = await fetch(`https://alumni-connect-backend-iydi.onrender.com/create-profile/${page}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

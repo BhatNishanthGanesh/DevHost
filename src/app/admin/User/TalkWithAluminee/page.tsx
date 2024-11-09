@@ -1,4 +1,4 @@
-"use client";
+"use client"
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/app/components/navbar';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ interface Aluminee {
 }
 
 const Page = () => {
-  const rowsPerPage = 10;
+  const rowsPerPage = 6; // Update to 6 per page
   const [currentPage, setCurrentPage] = useState(1);
   const [alumineesData, setAlumineesData] = useState<Aluminee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -63,10 +63,12 @@ const Page = () => {
             __v: alum.__v
           }));
 
-          // Sort alumni by highest LPA first
+          // Sorting: by package in descending order initially
           filteredData.sort((a: any, b: any) => b.package - a.package);
 
           setAlumineesData(filteredData);
+
+          // Update total pages based on filtered data
           setTotalPages(Math.ceil(filteredData.length / rowsPerPage));
         } else {
           throw new Error("Expected JSON response, but received non-JSON content");
@@ -86,14 +88,17 @@ const Page = () => {
   };
 
   const getCurrentPageData = () => {
+    const filteredData = filterAluminees(alumineesData);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    return alumineesData.slice(startIndex, endIndex);
+    return filteredData.slice(startIndex, endIndex); // Apply filtering here
   };
 
   const getPageNumbers = () => {
     const pageNumbers = [];
-    for (let i = 1; i <= totalPages; i++) {
+    const filteredData = filterAluminees(alumineesData);
+    const totalFilteredPages = Math.ceil(filteredData.length / rowsPerPage);
+    for (let i = 1; i <= totalFilteredPages; i++) {
       pageNumbers.push(i);
     }
     return pageNumbers;
@@ -108,24 +113,36 @@ const Page = () => {
   };
 
   const filterAluminees = (data: Aluminee[]) => {
-    return data.filter((alum) => {
-      if (selectedCategory === 'name') {
-        return alum.name.toLowerCase().includes(searchQuery.toLowerCase());
-      } else if (selectedCategory === 'company') {
-        return alum.company.toLowerCase().includes(searchQuery.toLowerCase());
-      } else if (selectedCategory === 'package') {
-        return alum.package.toString().includes(searchQuery);
-      }
-      return true;
-    });
+    let filteredData = data;
+
+    // Filter based on search query and selected category
+    if (selectedCategory === 'name') {
+      filteredData = data.filter((alum) => alum.name.toLowerCase().includes(searchQuery.toLowerCase()));
+    }
+
+    // Sort based on selected category
+    if (selectedCategory === 'name') {
+      filteredData.sort((a, b) => a.name.localeCompare(b.name)); // Ascending order
+    } else if (selectedCategory === 'company') {
+      filteredData.sort((a, b) => a.company.localeCompare(b.company)); // Ascending order
+    } else if (selectedCategory === 'package') {
+      filteredData.sort((a, b) => b.package - a.package); // Descending order
+    }
+
+    return filteredData;
+  };
+
+  // Function to navigate to the chat page with selected alumni's ID
+  const handleChatClick = (alumId: string) => {
+    router.push(`/admin/User/TalkWithAluminee/${alumId}`); 
   };
 
   return (
-    <div>
+    <div className='dark:bg-gray-900 min-h-screen'>
       <Navbar />
-      <div className="p-6">
-        <h1 className="text-4xl font-bold text-center mb-6">Meet Past Alumni</h1>
-        <p className="text-lg text-center text-gray-600 mb-8">Explore the success stories of our alumni who made remarkable strides in their careers</p>
+      <div className="pt-[100px] px-6">
+        <h1 className="text-4xl font-bold text-center mb-6">Meet Past Alumni's</h1>
+        <p className="text-lg text-center text-gray-600 dark:text-gray-300 mb-8">Explore the success stories of our alumni who made remarkable strides in their careers</p>
 
         {/* Search and Category Selection */}
         <div className="flex justify-between mb-4">
@@ -134,35 +151,35 @@ const Page = () => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="w-full py-2 pl-10 pr-4 rounded-full border-2 dark:bg-neutral-800 text-neutral-700 placeholder-neutral-400 focus:outline-none"
+              placeholder="Search by name..."
+              className="w-full py-2 pl-10 pr-4 rounded-full border-2 border-gray-400 dark:bg-neutral-300 text-neutral-700 dark:placeholder-neutral-700 placeholder-neutral-700 focus:outline-none"
             />
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400">
+            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 dark:text-neutral-700 text-neutral-500">
               <FiSearch />
             </span>
           </div>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border-2 rounded-full p-2"
+            className="border-2 rounded-full dark:bg-white dark:text-gray-800 cursor-pointer p-2"
           >
-            <option value="name">Name</option>
-            <option value="company">Company</option>
-            <option value="package">Package</option>
+            <option value="name" className='cursor-pointer'>Name</option>
+            <option value="company" className='cursor-pointer'>Company</option>
+            <option value="package" className='cursor-pointer'>Package</option>
           </select>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {filterAluminees(getCurrentPageData()).map((alum) => (
+        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-6">
+          {getCurrentPageData().map((alum) => (
             <div
               key={alum._id}
-              className="p-4 border rounded-lg shadow-lg cursor-pointer"
+              className="p-4 border rounded-lg dark:bg-gray-600 shadow-lg cursor-pointer hover:shadow-none"
               onClick={() => openModal(alum)}
             >
               <h2 className="text-xl font-semibold">{alum.name}</h2>
-              <p className="text-gray-600">{alum.company}</p>
-              <p className="text-gray-500">{alum.stack.join(', ')}</p>
-              <p className="text-gray-500">Package: ₹{alum.package} LPA</p>
+              <p className="text-gray-600 dark:text-gray-200">{alum.company}</p>
+              <p className="text-gray-500 dark:text-gray-200">{alum.stack.join(', ')}</p>
+              <p className="text-gray-500 dark:text-gray-200">Package: ₹{alum.package} LPA</p>
             </div>
           ))}
         </div>
@@ -173,9 +190,7 @@ const Page = () => {
             <button
               key={pageNumber}
               onClick={() => handleClick(pageNumber)}
-              className={`px-4 py-2 mx-2 rounded-md ${
-                pageNumber === currentPage ? 'bg-blue-500 text-white' : 'bg-gray-200'
-              }`}
+              className={`px-4 py-2 mx-2 rounded-md ${pageNumber === currentPage ? 'bg-gray-200 text-black' : 'bg-gray-900 text-white'}`}
             >
               {pageNumber}
             </button>
@@ -184,38 +199,32 @@ const Page = () => {
 
         {/* Modal for showing selected alumni details */}
         {selectedAlum && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
-              <h2 className="text-2xl font-bold mb-4">Alumni Details</h2>
-              <div>
-                <p><strong>Name:</strong> {selectedAlum.name}</p>
-                <p><strong>Phone Number:</strong> {selectedAlum.phone_number}</p>
-                <p><strong>Company:</strong> {selectedAlum.company}</p>
-                <p><strong>Stack:</strong> {selectedAlum.stack.join(', ')}</p>
-                <p><strong>Package:</strong> ₹{selectedAlum.package} LPA</p>
-                <p><strong>Location:</strong> {selectedAlum.location}</p>
-                <p><strong>Advice:</strong> {selectedAlum.advice.join(', ')}</p>
-                <p><strong>Comment:</strong> {selectedAlum.comment}</p>
-                <p><strong>Requirements:</strong> {selectedAlum.requirements.join(', ')}</p>
-                <div>
-                  <Button
-                    onClick={closeModal}
-                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg"
-                  >
-                    Close
-                  </Button>
-                  <Button onClick={() => {
-                    localStorage.setItem('currentChatId', selectedAlum._id);
-                    localStorage.setItem('chatWithName', selectedAlum.name);
-                    router.push(`/admin/User/TalkWithAluminee/${selectedAlum._id}`);
-                  }}>
-                    Chat
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+  <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/2 lg:w-1/3 xl:w-1/4">
+      <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Alumni Details</h2>
+      <div className="space-y-2">
+        <p className="text-gray-700 dark:text-gray-300"><strong>Name:</strong> {selectedAlum.name}</p>
+        <p className="text-gray-700 dark:text-gray-300"><strong>Phone Number:</strong> {selectedAlum.phone_number}</p>
+        <p className="text-gray-700 dark:text-gray-300"><strong>Company:</strong> {selectedAlum.company}</p>
+        <p className="text-gray-700 dark:text-gray-300"><strong>Stack:</strong> {selectedAlum.stack.join(', ')}</p>
+        <p className="text-gray-700 dark:text-gray-300"><strong>Package:</strong> ₹{selectedAlum.package} LPA</p>
+        <p className="text-gray-700 dark:text-gray-300"><strong>Location:</strong> {selectedAlum.location}</p>
+      </div>
+      <div className="mt-6 flex justify-between">
+        <Button onClick={closeModal} className="bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-white px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600">
+          Close
+        </Button>
+        <Button
+          onClick={() => handleChatClick(selectedAlum._id)}
+          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+        >
+          Chat
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

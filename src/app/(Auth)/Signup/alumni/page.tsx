@@ -46,7 +46,8 @@ const AlumniSignupPage = () => {
         }
 
         try {
-            const response = await fetch(`/Signup/alumni/api`, {
+            // const response = await fetch(`/Signup/alumni/api`, {
+            const response = await fetch(`https://alumni-connect-backend-iydi.onrender.com/create-profile/${page}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

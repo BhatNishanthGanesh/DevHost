@@ -1,186 +1,125 @@
-"use client";
+"use client"
+import React, { useState, useEffect } from "react";
+import socket from "@/app/components/socket";
+import { Navbar } from "@/app/components/navbar";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-
-const ChatPage = () => {
-  const { alumniId } = useParams();
-  const [chatWithName, setChatWithName] = useState<string>("");
+const Chat = () => {
+  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<any[]>([]);
-  const [message, setMessage] = useState<string>("");
-  const [lastMessageId, setLastMessageId] = useState<string | null>(null);
-  const [authToken, setAuthToken] = useState<string | null>(null);
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-
-  const API_URL = "https://chat-app-b39u.onrender.com/api";
+  const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [receiverId, setReceiverId] = useState<string>("");
 
   useEffect(() => {
-    // Check if window is available (i.e., we're on the client side)
-    if (typeof window !== "undefined") {
-      const storedAuthToken = localStorage.getItem("authToken");
-      const storedChatId = localStorage.getItem("currentChatId");
-      const storedChatWithName = localStorage.getItem("chatWithName");
+    // Get the user data from localStorage
+    const user = localStorage.getItem("user");
+    
+    // Parse the user data
+    const parsedUser = user ? JSON.parse(user) : null;
 
-      setAuthToken(storedAuthToken);
-      setCurrentChatId(storedChatId);
+    // Access the 'id' and 'name' properties
+    const userId = parsedUser?.id;
+    const username = parsedUser?.name;
 
-      if (storedChatWithName) {
-        setChatWithName(storedChatWithName);
-      }
+    console.log(username);
+
+    // Get the last segment of the URL as receiverId
+    const pathSegments = window.location.pathname.split("/");
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    console.log(lastSegment);
+
+    // Store receiverId in localStorage
+    localStorage.setItem("receiverId", lastSegment);
+
+    // Set userId and receiverId state
+    setUserId(userId);
+    setReceiverId(lastSegment); 
+
+    // Emit the user identification to socket
+    if (user) {
+      socket.emit("identifyUser", user);
     }
+
+    // Fetch user name using fetch API
+    if (userId) {
+      fetch(`https://socket-backend-xf92.onrender.com/getUserName/${userId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          console.log(data);
+          setUserName(data.name);
+        })
+        .catch((err) => {
+          console.error("Error fetching user name:", err);
+        });
+    }
+
+    // Listen for incoming messages
+    socket.on("receiveMessage", (incomingMessage) => {
+      setMessages((prevMessages) => [...prevMessages, incomingMessage]);
+    });
+
+    // Cleanup socket event listener when the component is unmounted
+    return () => {
+      socket.off("receiveMessage");
+    };
   }, []);
 
-  useEffect(() => {
-    if (currentChatId) {
-      loadMessages();
+  const sendMessage = () => {
+    if (message.trim() !== "" && receiverId && userId) {
+      const newMessage = {
+        text: message,
+        senderId: userId,
+        receiverId: receiverId,
+        id: Date.now(),
+      };
+
+      // Emit the message via socket
+      socket.emit("sendMessage", newMessage);
+      setMessage(""); // Reset message input
     }
-
-    const interval = setInterval(() => {
-      if (currentChatId) {
-        loadMessages();
-      }
-    }, 2000);
-
-    return () => clearInterval(interval); // Clean up the interval on unmount
-  }, [currentChatId, alumniId]);
-
-  // Load messages from API
-  const loadMessages = async () => {
-    try {
-      let url = `${API_URL}/chat/messages/${currentChatId}`;
-      if (lastMessageId) {
-        url += `?after=${lastMessageId}`;
-      }
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch messages");
-      }
-
-      const data = await response.json();
-      setMessages(data);
-
-      if (data.length > 0) {
-        setLastMessageId(data[data.length - 1]._id);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  };
-
-  // Send a new message
-  const sendMessage = async () => {
-    if (!message || !currentChatId) {
-      alert("Please type a message");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${API_URL}/chat/send`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          receiverId: currentChatId,
-          message,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
-
-      const data = await response.json();
-
-      if (data._id) {
-        loadMessages();
-        setMessage(""); // Clear input field
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  // End the chat session
-  const endChat = () => {
-    localStorage.removeItem("currentChatId");
-    localStorage.removeItem("chatWithName");
-    window.location.href = "/"; // Redirect to home or login page
   };
 
   return (
-    <div className="container mt-5 chat-container">
-      <h1 className="text-center">Chat with {chatWithName}</h1>
-
-      {/* Chat Interface */}
-      <div id="chatInterface" className="mt-5">
-        <div
-          id="messages"
-          style={{ maxHeight: "400px", overflowY: "auto", border: "1px solid #ccc", padding: "10px", backgroundColor: "#f9f9f9" }}
-        >
-          {messages.map((message, index) => {
-            const isSender = message.sender._id !== currentChatId;
-            return (
-              <div
-                key={message._id}
-                className={`message ${isSender ? "sender" : "receiver"}`}
-                style={{
-                  marginBottom: "10px",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: isSender ? "flex-end" : "flex-start",
-                }}
-              >
-                <span className="sender" style={{ fontWeight: "bold", color: "#555" }}>
-                  {message.sender.username}:
-                </span>
-                <span
-                  className="text"
-                  style={{
-                    marginLeft: "10px",
-                    padding: "10px",
-                    borderRadius: "10px",
-                    backgroundColor: isSender ? "#0084ff" : "#e0e0e0",
-                    color: isSender ? "white" : "black",
-                    maxWidth: "70%",
-                  }}
+    <div >
+        <Navbar/>
+      <div className="px-5 mb-[80px] py-2 text-sm text-gray-500">
+        {userName ? `Hello, ${userName}` : "Loading user name..."}
+      </div>
+      <div className="container mx-auto shadow-lg rounded-lg">
+        <div className="px-5 py-5 flex justify-between items-center bg-white border-b-2">
+          <div className="font-semibold text-2xl">GoingChat</div>
+        </div>
+        <div className="flex flex-row justify-between bg-white">
+          <div className="w-full px-5 flex flex-col justify-between">
+            <div className="flex flex-col mt-5 space-y-4">
+              {messages.map((msg, index) => (
+                <div
+                  key={msg.id || index}
+                  className={`flex ${msg.senderId === userId ? "justify-end" : "justify-start"} mb-4`}
                 >
-                  {message.message}
-                </span>
-              </div>
-            );
-          })}
+                  <div
+                    className={`py-3 px-4 ${msg.senderId === userId ? "bg-blue-400" : "bg-gray-400"} rounded-lg text-white max-w-xs break-words`}
+                  >
+                    {msg.text}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="py-5">
+              <input
+                className="w-full bg-gray-300 py-5 px-3 rounded-xl"
+                type="text"
+                placeholder="Type your message here..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              />
+            </div>
+          </div>
         </div>
-
-        <div className="input-group mt-3" style={{ display: "flex", gap: "10px" }}>
-          <textarea
-            id="message"
-            className="form-control"
-            placeholder="Type your message..."
-            rows={4}
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            style={{ width: "100%", padding: "10px", borderRadius: "5px" }}
-          ></textarea>
-          <button className="btn btn-success" onClick={sendMessage} style={{ padding: "10px 20px" }}>
-            Send
-          </button>
-        </div>
-
-        <button className="btn btn-secondary mt-3" onClick={endChat} style={{ padding: "10px 20px" }}>
-          End Chat
-        </button>
       </div>
     </div>
   );
 };
 
-export default ChatPage;
+export default Chat;

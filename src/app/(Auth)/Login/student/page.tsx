@@ -76,7 +76,7 @@ const LoginPage = () => {
           >
             <FaArrowLeft className="w-6 h-6" />
           </Link>
-          <h2 className="text-3xl font-extrabold text-center text-gray-800">Welcome Back User</h2>
+          <h2 className="text-3xl font-extrabold text-center text-gray-800">Welcome Back, User</h2>
           <p className="text-center text-gray-500">Login to connect with alumni</p>
 
           {/* Error message */}

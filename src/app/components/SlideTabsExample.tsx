@@ -1,5 +1,6 @@
 import React, { useRef, useState } from "react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 export const SlideTabsExample = () => {
   return (
@@ -24,11 +25,23 @@ const SlideTabs = () => {
           opacity: 0,
         }));
       }}
-      className="relative mx-auto flex w-fit rounded-full border-2 border-black bg-white "
+      className="relative mx-auto flex w-fit bg-white "
     >
-      <Tab setPosition={setPosition}>About</Tab>
-      <Tab setPosition={setPosition}>Contact</Tab>
-      <Tab setPosition={setPosition}>Report</Tab>
+     <Tab setPosition={setPosition}>
+        <Link href="/admin/About">
+          About
+        </Link>
+      </Tab>
+      <Tab setPosition={setPosition}>
+        <Link href="/admin/Contact">
+          Contact
+        </Link>
+      </Tab>
+      <Tab setPosition={setPosition}>
+        <Link href="/admin/Report">
+          Report
+        </Link>
+      </Tab>
 
       <Cursor position={position} />
     </ul>
@@ -53,7 +66,7 @@ const Tab = ({ children, setPosition }:any) => {
           opacity: 1,
         });
       }}
-      className="relative z-10 block cursor-pointer px-3 py-1.5 text-sm uppercase text-white mix-blend-difference md:px-5 md:py-3 "
+      className="relative z-10 block cursor-pointer px-3 py-1.5 text-sm uppercase text-black md:px-5 md:py-3 "
     >
       {children}
     </li>
@@ -66,7 +79,7 @@ const Cursor = ({ position }:any) => {
       animate={{
         ...position,
       }}
-      className="absolute z-0 h-7 rounded-full bg-black md:h-11"
+      className="absolute z-0 h-7 rounded-full bg-gray-200  md:h-11"
     />
   );
 };

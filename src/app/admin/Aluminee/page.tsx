@@ -1,5 +1,6 @@
 'use client';
 import { Navbar } from "@/app/components/navbar";
+import Link from "next/link";
 import React, { useState } from "react";
 
 const Page = () => {
@@ -56,13 +57,13 @@ const Page = () => {
   return (
     <div>
         <Navbar/>
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-lg p-6 bg-white shadow-md rounded-lg">
-        <h2 className="text-2xl font-bold text-center mb-4">Submit Referral Link</h2>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-800">
+      <div className="w-full max-w-lg p-6  bg-white shadow-md rounded-lg">
+        <h2 className="text-2xl font-bold text-black text-center mb-4">Submit Referral Link</h2>
         <form onSubmit={handleFormSubmit} className="space-y-4">
           {/* Referral Link Field */}
           <div>
-            <label htmlFor="url" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="url" className="block mb-2 text-sm font-medium  text-gray-700">
               Referral Link
             </label>
             <input
@@ -71,7 +72,7 @@ const Page = () => {
               name="url"
               value={referralLink}
               onChange={(e) => setReferralLink(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2 border rounded-lg dark:bg-white dark:text-black"
               placeholder="https://example.com/referral"
               required
             />
@@ -79,7 +80,7 @@ const Page = () => {
 
           {/* Category Dropdown */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="category" className="block text-sm mb-2 font-medium text-gray-700">
               Category
             </label>
             <select
@@ -87,7 +88,7 @@ const Page = () => {
               name="category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg"
+              className="w-full px-3 py-2 border rounded-lg dark:bg-white dark:text-black"
               required
             >
               <option value="">Select a Category</option>
@@ -109,7 +110,6 @@ const Page = () => {
             {loading ? "Submitting..." : "Submit"}
           </button>
         </form>
-
         {/* Response Message */}
         {message && <p className="mt-4 text-center text-sm text-gray-700">{message}</p>}
       </div>
