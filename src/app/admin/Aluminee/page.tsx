@@ -2,6 +2,7 @@
 import { Navbar } from "@/app/components/navbar";
 import Link from "next/link";
 import React, { useState } from "react";
+import { toast } from "sonner"
 
 const Page = () => {
   const [referralLink, setReferralLink] = useState("");
@@ -42,6 +43,10 @@ const Page = () => {
         setMessage("Referral link successfully submitted!");
         setReferralLink("");
         setCategory("");
+        toast.success('Link sent successfully');
+        setTimeout(() => {
+          toast.dismiss();
+        }, 3000);
       } else {
         const errorData = await response.json(); // Optionally, log the error data from the server
         setMessage(`Error: ${errorData.message || "Failed to submit referral link."}`);
@@ -112,6 +117,7 @@ const Page = () => {
         </form>
         {/* Response Message */}
         {message && <p className="mt-4 text-center text-sm text-gray-700">{message}</p>}
+        
       </div>
     </div>
     </div>

@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/app/components/navbar';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,7 @@ interface Aluminee {
 }
 
 const Page = () => {
-  const rowsPerPage = 6; // Update to 6 per page
+  const rowsPerPage = 6;
   const [currentPage, setCurrentPage] = useState(1);
   const [alumineesData, setAlumineesData] = useState<Aluminee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +32,6 @@ const Page = () => {
   const [selectedCategory, setSelectedCategory] = useState('name');
   const router = useRouter();
 
-  // Fetch alumni data from the API
   useEffect(() => {
     const fetchAlumniData = async () => {
       try {
@@ -42,37 +41,14 @@ const Page = () => {
           throw new Error(`Failed to fetch: ${response.statusText}`);
         }
 
-        const contentType = response.headers.get('Content-Type');
-        if (contentType && contentType.includes('application/json')) {
-          const data = await response.json();
-          console.log(data);
+        const data = await response.json();
+        const filteredData = data.alumni.map((alum: any) => ({
+          ...alum,
+        }));
 
-          const filteredData = data.alumni.map((alum: any) => ({
-            _id: alum._id,
-            name: alum.name,
-            phone_number: alum.phone_number,
-            password: alum.password,
-            company: alum.company,
-            stack: alum.stack,
-            package: alum.package,
-            location: alum.location,
-            advice: alum.advice,
-            comment: alum.comment,
-            requirements: alum.requirements,
-            chats: alum.chats,
-            __v: alum.__v
-          }));
-
-          // Sorting: by package in descending order initially
-          filteredData.sort((a: any, b: any) => b.package - a.package);
-
-          setAlumineesData(filteredData);
-
-          // Update total pages based on filtered data
-          setTotalPages(Math.ceil(filteredData.length / rowsPerPage));
-        } else {
-          throw new Error("Expected JSON response, but received non-JSON content");
-        }
+        filteredData.sort((a: any, b: any) => b.package - a.package);
+        setAlumineesData(filteredData);
+        setTotalPages(Math.ceil(filteredData.length / rowsPerPage));
       } catch (error) {
         console.error('Error fetching alumni data:', error);
       } finally {
@@ -91,50 +67,26 @@ const Page = () => {
     const filteredData = filterAluminees(alumineesData);
     const startIndex = (currentPage - 1) * rowsPerPage;
     const endIndex = startIndex + rowsPerPage;
-    return filteredData.slice(startIndex, endIndex); // Apply filtering here
-  };
-
-  const getPageNumbers = () => {
-    const pageNumbers = [];
-    const filteredData = filterAluminees(alumineesData);
-    const totalFilteredPages = Math.ceil(filteredData.length / rowsPerPage);
-    for (let i = 1; i <= totalFilteredPages; i++) {
-      pageNumbers.push(i);
-    }
-    return pageNumbers;
-  };
-
-  const openModal = (alum: Aluminee) => {
-    setSelectedAlum(alum);
-  };
-
-  const closeModal = () => {
-    setSelectedAlum(null);
+    return filteredData.slice(startIndex, endIndex);
   };
 
   const filterAluminees = (data: Aluminee[]) => {
     let filteredData = data;
-
-    // Filter based on search query and selected category
     if (selectedCategory === 'name') {
       filteredData = data.filter((alum) => alum.name.toLowerCase().includes(searchQuery.toLowerCase()));
     }
 
-    // Sort based on selected category
-    if (selectedCategory === 'name') {
-      filteredData.sort((a, b) => a.name.localeCompare(b.name)); // Ascending order
-    } else if (selectedCategory === 'company') {
-      filteredData.sort((a, b) => a.company.localeCompare(b.company)); // Ascending order
-    } else if (selectedCategory === 'package') {
-      filteredData.sort((a, b) => b.package - a.package); // Descending order
-    }
+    filteredData.sort((a, b) => {
+      if (selectedCategory === 'name') return a.name.localeCompare(b.name);
+      if (selectedCategory === 'company') return a.company.localeCompare(b.company);
+      return b.package - a.package;
+    });
 
     return filteredData;
   };
 
-  // Function to navigate to the chat page with selected alumni's ID
   const handleChatClick = (alumId: string) => {
-    router.push(`/admin/User/TalkWithAluminee/${alumId}`); 
+    router.push(`/admin/User/TalkWithAluminee/${alumId}`);
   };
 
   return (
@@ -144,7 +96,6 @@ const Page = () => {
         <h1 className="text-4xl font-bold text-center mb-6">Meet Past Alumni's</h1>
         <p className="text-lg text-center text-gray-600 dark:text-gray-300 mb-8">Explore the success stories of our alumni who made remarkable strides in their careers</p>
 
-        {/* Search and Category Selection */}
         <div className="flex justify-between mb-4">
           <div className="relative w-96">
             <input
@@ -169,24 +120,30 @@ const Page = () => {
           </select>
         </div>
 
-        <div className="grid grid-cols-1  sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {getCurrentPageData().map((alum) => (
             <div
               key={alum._id}
               className="p-4 border rounded-lg dark:bg-gray-600 shadow-lg cursor-pointer hover:shadow-none"
-              onClick={() => openModal(alum)}
+              onClick={() => setSelectedAlum(alum)}
             >
-              <h2 className="text-xl font-semibold">{alum.name}</h2>
-              <p className="text-gray-600 dark:text-gray-200">{alum.company}</p>
-              <p className="text-gray-500 dark:text-gray-200">{alum.stack.join(', ')}</p>
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gray-400 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                  {alum.name[0]}
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">{alum.name}</h2>
+                  <p className="text-gray-600 dark:text-gray-200">{alum.company}</p>
+                </div>
+              </div>
+              <p className="text-gray-500 dark:text-gray-200 mt-2">Stack: {alum.stack.join(', ')}</p>
               <p className="text-gray-500 dark:text-gray-200">Package: ₹{alum.package} LPA</p>
             </div>
           ))}
         </div>
 
-        {/* Pagination */}
         <div className="flex justify-center mt-8">
-          {getPageNumbers().map((pageNumber) => (
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
             <button
               key={pageNumber}
               onClick={() => handleClick(pageNumber)}
@@ -197,34 +154,32 @@ const Page = () => {
           ))}
         </div>
 
-        {/* Modal for showing selected alumni details */}
         {selectedAlum && (
-  <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
-    <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/2 lg:w-1/3 xl:w-1/4">
-      <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Alumni Details</h2>
-      <div className="space-y-2">
-        <p className="text-gray-700 dark:text-gray-300"><strong>Name:</strong> {selectedAlum.name}</p>
-        <p className="text-gray-700 dark:text-gray-300"><strong>Phone Number:</strong> {selectedAlum.phone_number}</p>
-        <p className="text-gray-700 dark:text-gray-300"><strong>Company:</strong> {selectedAlum.company}</p>
-        <p className="text-gray-700 dark:text-gray-300"><strong>Stack:</strong> {selectedAlum.stack.join(', ')}</p>
-        <p className="text-gray-700 dark:text-gray-300"><strong>Package:</strong> ₹{selectedAlum.package} LPA</p>
-        <p className="text-gray-700 dark:text-gray-300"><strong>Location:</strong> {selectedAlum.location}</p>
-      </div>
-      <div className="mt-6 flex justify-between">
-        <Button onClick={closeModal} className="bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-white px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600">
-          Close
-        </Button>
-        <Button
-          onClick={() => handleChatClick(selectedAlum._id)}
-          className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-        >
-          Chat
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
-
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
+            <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg w-11/12 sm:w-1/2 lg:w-1/3 xl:w-1/4">
+              <h2 className="text-2xl font-semibold text-gray-800 dark:text-white mb-4">Alumni Details</h2>
+              <div className="space-y-2">
+                <p><strong>Name:</strong> {selectedAlum.name}</p>
+                <p><strong>Phone Number:</strong> {selectedAlum.phone_number}</p>
+                <p><strong>Company:</strong> {selectedAlum.company}</p>
+                <p><strong>Stack:</strong> {selectedAlum.stack.join(', ')}</p>
+                <p><strong>Package:</strong> ₹{selectedAlum.package} LPA</p>
+                <p><strong>Location:</strong> {selectedAlum.location}</p>
+                <p><strong>Advice:</strong> {selectedAlum.advice.join(', ')}</p>
+                <p><strong>Requirements:</strong> {selectedAlum.requirements.join(', ')}</p>
+              </div>
+              <div className="mt-6 flex justify-between">
+                <Button onClick={() => setSelectedAlum(null)} className="bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-white px-4 py-2 rounded hover:bg-gray-400 dark:hover:bg-gray-600">Close</Button>
+                <Button
+                  onClick={() => handleChatClick(selectedAlum._id)}
+                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                >
+                  Chat
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

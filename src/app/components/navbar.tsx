@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { jwtDecode } from 'jwt-decode';
 import { useRouter } from "next/navigation";
 import { SlideTabsExample } from "@/app/components/SlideTabsExample";
+import StaggeredDropDown from "@/app/components/StraggerdDropMenu";  
 
 export const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -40,12 +41,18 @@ export const Navbar = () => {
       <div className="flex items-center">
         {user ? (
           <>
-            <Link href="/admin/User" className="text-black dark:text-white ml-2">{user?.role}</Link>
+            {/* <Link href="/admin/User" className="text-black dark:text-white ml-2">{user?.role}</Link> */}
+            <Link
+  href={user?.role === "user" ? "/admin/User" : "/admin/Aluminee"}
+  className="text-black dark:text-white ml-2"
+>
+  {user?.role}
+</Link>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <div className="flex items-center cursor-pointer ml-2">
                   <Avatar>
-                    <AvatarImage src={user?.avatarUrl || "https://github.com/shadcn.png"} />
+                    <AvatarImage src={user?.avatarUrl || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSrMZls0XjjU5szZzcmkHZH7Geb4ngV8-rGwA&s"} />
                     <AvatarFallback>CN</AvatarFallback>
                   </Avatar>
                 </div>
@@ -61,9 +68,9 @@ export const Navbar = () => {
       </div>
 
       <div className="flex-grow flex justify-center items-center space-x-4">
-        <SlideTabsExample />
+        {/* <SlideTabsExample /> */}
       </div>
-
+       
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="icon">
@@ -78,7 +85,7 @@ export const Navbar = () => {
           <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
+      <StaggeredDropDown />
       {user?.role !== "alumni" && (
         <div className="ml-4">
           <Link href="/admin/User/postals">
@@ -86,7 +93,7 @@ export const Navbar = () => {
           </Link>
         </div>
       )}
-
+          
       <div className="md:hidden">
         <button onClick={() => setMenuOpen(!menuOpen)} className="text-neutral-200">
           <FiMenu size={24} />

@@ -5,6 +5,7 @@ import { FiArrowUpRight } from "react-icons/fi";
 import { Navbar } from "@/app/components/navbar";
 import Link from "next/link";  
 import { ClipPaths } from "@/app/components/ClipPath";
+import HoriComponent from "@/app/components/HorizontalComponents";
 
 
 const page = () => {
@@ -154,10 +155,11 @@ const HighLPAContent = () => (
 const DomainContent = () => (
 <div className="relative text-center py-12">
   <h1 className="text-4xl font-semibold text-gray-900 dark:text-white mb-6 md:text-5xl">
-    Top Companies Recruited
+    Top Domains Trending
   </h1>
   <div>
-    <ClipPaths/>
+    {/* <ClipPaths/> */}
+    <HoriComponent/>
   </div>
 </div>
 

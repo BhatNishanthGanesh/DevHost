@@ -8,9 +8,9 @@ import { Navbar } from "@/app/components/navbar";
 // Default images for categories
 const categoryImages: { [key: string]: string } = {
   "web/app": "/images/web-app.jpg",
-  electronics: "/images/electronics.jpg",
-  others: "/images/others.jpg",
-  business: "/images/business.jpg",
+  electronics: "/Assets/electronics.jpg",
+  others: "/Assets/others.jpg",
+  business: "/Assets/business.jpg",
 };
 
 const CategoryPage = () => {
@@ -59,12 +59,19 @@ const CategoryPage = () => {
     return categoryImages[category] || "/Assets/Image1.png";
   };
 
+  // Function to extract the domain from the URL without '//' and '.com'
+  const extractUrlSegment = (url: string) => {
+    const regex = /(?:\/\/)?([^\/]+\.com)/; // Updated regex to exclude '//' part
+    const match = url.match(regex);
+    return match ? match[1] : url; // Return domain without '//' or the whole URL if no match
+  };
+
   return (
     <div>
       <Navbar />
       <div className="h-screen pt-[100px] flex flex-col p-6">
         <h1 className="text-3xl font-bold text-center mb-4">
-          Category: {category}
+          {category}
         </h1>
 
         {/* Category Image */}
@@ -86,7 +93,7 @@ const CategoryPage = () => {
               {categoryUrls.map((item, index) => (
                 <div
                   key={index}
-                  className="border rounded-lg p-4 shadow-lg hover:shadow-2xl transition-shadow"
+                  className="border rounded-lg p-4 shadow-lg hover:shadow-none transition-shadow"
                 >
                   <div className="flex items-center space-x-3 mb-4">
                     {/* Category Icon */}
@@ -99,7 +106,9 @@ const CategoryPage = () => {
                     {category === "others" && (
                       <FaBriefcase size={30} color="#ff9800" />
                     )}
-                    <div className="text-lg font-semibold">{item.url}</div>
+                    <div className="text-lg font-semibold">
+                      {extractUrlSegment(item.url)} {/* Display URL segment without '//' */}
+                    </div>
                   </div>
                   <button
                     onClick={() => window.open(item.url, "_blank")}
@@ -112,7 +121,7 @@ const CategoryPage = () => {
             </div>
           ) : (
             <div className="text-center text-gray-500">
-              No URLs available for this category.
+              No Jobs aren't right now at the moment.
             </div>
           )}
         </div>
